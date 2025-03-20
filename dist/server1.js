@@ -39,16 +39,31 @@ app.post("/products", (req, res) => {
     res.status(201).json(newProduct);
 });
 app.patch("/products/:id", (req, res) => {
-    const { id } = req.params;
-    const productIndex = products.findIndex((p) => p.id === id);
+    const { id } = req.params; // ID del producto a actualizar
+    const productIndex = products.findIndex((p) => p.id === id); // Buscar producto en array
+    // Si el producto no se encuentra, devolver un error 404
     if (productIndex === -1)
         return res.status(404).json({ message: "Producto no encontrado" });
+    // Crear objeto actualizado combinando datos antiguos y nuevos enviados por el cliente
     const updatedProduct = {
         ...products[productIndex],
         ...req.body,
         updated_at: new Date(),
     };
+    // Guarda el producto actualizado en el array
     products[productIndex] = updatedProduct;
+    // Retorna producto actualizado al cliente
     res.json(updatedProduct);
+});
+//Eliminar un producto por su ID
+app.delete("/products/:id", (req, res) => {
+    const productIndex = products.findIndex((p) => p.id === req.params.id); // Buscar índice del producto
+    // Si el producto no se encuentra, retorna error 404
+    if (productIndex === -1)
+        return res.status(404).json({ message: "Producto no encontrado" });
+    // Elimina producto del array
+    products.splice(productIndex, 1);
+    // Devuelve una respuesta vacía con código 204 indicando éxito en la eliminación
+    return res.status(204).send();
 });
 app.listen(PORT, () => console.log("¡Aplicación de ejemplo escuchando en el puerto 3000!"));

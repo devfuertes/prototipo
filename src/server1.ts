@@ -1,9 +1,9 @@
-import express, { Application, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import { mockProducts } from "./mockProducts.js";
 import { v4 as uuidv4 } from "uuid";
 
 //Inicializar servidor Express con tipado explícito
-const app: Application = express();
+const app  = express();
 const PORT = 3000; // Puerto en el que escuchará el servidor
 
 
@@ -46,27 +46,42 @@ app.post("/products", (req: Request, res: Response) => {
   res.status(201).json(newProduct);
 });
 
-app.patch("/products/:id", (req: Request, res: Response) => {
-  const { id } = req.params;
-  const productIndex = products.findIndex((p) => p.id === id);
+app.patch("/products/:id", (req:Request, res: Response) => {
+  const { id } = req.params; // ID del producto a actualizar
+  const productIndex = products.findIndex((p) => p.id === id); // Buscar producto en array
 
+  // Si el producto no se encuentra, devolver un error 404
   if (productIndex === -1)
     return res.status(404).json({ message: "Producto no encontrado" });
 
+  // Crear objeto actualizado combinando datos antiguos y nuevos enviados por el cliente
   const updatedProduct = {
     ...products[productIndex],
     ...req.body,
     updated_at: new Date(),
   };
 
+  // Guarda el producto actualizado en el array
   products[productIndex] = updatedProduct;
 
+  // Retorna producto actualizado al cliente
   res.json(updatedProduct);
 });
 
+//Eliminar un producto por su ID
+app.delete("/products/:id", (req: Request, res: Response) => {
+  const productIndex = products.findIndex((p) => p.id === req.params.id); // Buscar índice del producto
 
+  // Si el producto no se encuentra, retorna error 404
+  if (productIndex === -1)
+    return res.status(404).json({ message: "Producto no encontrado" });
 
+  // Elimina producto del array
+  products.splice(productIndex, 1);
 
+  // Devuelve una respuesta vacía con código 204 indicando éxito en la eliminación
+  return res.status(204).send();
+});
 
 
 
