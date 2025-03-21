@@ -3,11 +3,10 @@ import { mockProducts } from "./mockProducts.js";
 import { v4 as uuidv4 } from "uuid";
 
 //Inicializar servidor Express con tipado explícito
-const app  = express();
+const app = express();
 const PORT = 3000; // Puerto en el que escuchará el servidor
 
-
-//Para parsear JSON 
+//Para parsear JSON
 app.use(express.json());
 
 // Array de productos
@@ -19,10 +18,18 @@ app.get("/products", (req: Request, res: Response) => {
   res.json(products);
 });
 
-app.get('/products/:id', (req: Request, res: Response) => {
-  const product = products.find(p => p.id === req.params.id);
-  if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
-  return res.json(product);
+//Obtener los productos por id--> las funciones tienen que ser void. 
+app.get("/products/:id", (req: Request, res: Response) => {
+
+  //const { id } = req.params
+  const product = products.find((p) => p.id === req.params.id);
+  if (!product){
+    res.status(404).json({ message: "Producto no encontrado" })
+    return
+  }else{
+
+    res.json(product);
+  }
 });
 
 //Crear un nuevo producto
@@ -46,7 +53,7 @@ app.post("/products", (req: Request, res: Response) => {
   res.status(201).json(newProduct);
 });
 
-app.patch("/products/:id", (req:Request, res: Response) => {
+app.patch("/products/:id", (req: Request, res: Response) => {
   const { id } = req.params; // ID del producto a actualizar
   const productIndex = products.findIndex((p) => p.id === id); // Buscar producto en array
 
@@ -70,22 +77,33 @@ app.patch("/products/:id", (req:Request, res: Response) => {
 
 //Eliminar un producto por su ID
 app.delete("/products/:id", (req: Request, res: Response) => {
-  const productIndex = products.findIndex((p) => p.id === req.params.id); // Buscar índice del producto
+  // Obtenemos el ID del producto desde la URL
+  const id = req.params.id;
 
-  // Si el producto no se encuentra, retorna error 404
-  if (productIndex === -1)
-    return res.status(404).json({ message: "Producto no encontrado" });
+  // Filtramos el array para eliminar el producto con el ID indicado
+  const newProducts = products.filter((p) => p.id !== id);
 
-  // Elimina producto del array
-  products.splice(productIndex, 1);
+  // Si la longitud del array no cambió, significa que no se encontró el producto
+  if (newProducts.length === products.length) {
+    return res
+      .status(404)
+      .json({ message: "Producto no encontrado para eliminar." });
+  }
 
-  // Devuelve una respuesta vacía con código 204 indicando éxito en la eliminación
-  return res.status(204).send();
+  // Actualizamos el array original con los productos restantes
+  products = newProducts;
+
+  // Retornamos un mensaje indicando éxito en la eliminación
+  res.json({ message: "Producto eliminado con éxito." });
 });
 
 
 
 
+// Inicia el servidor Express escuchando en el puerto definido
 app.listen(PORT, () =>
   console.log("¡Aplicación de ejemplo escuchando en el puerto 3000!")
 );
+
+
+//logger--> Morgan - Debug
